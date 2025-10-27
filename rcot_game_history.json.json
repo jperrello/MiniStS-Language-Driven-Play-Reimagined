@@ -1,0 +1,104 @@
+{
+  "config": {
+    "model": "gpt-4o",
+    "temperature": 0.7,
+    "max_tokens": 500,
+    "anonymize_cards": false,
+    "retry_limit": 3
+  },
+  "statistics": {
+    "total_requests": 9,
+    "invalid_responses": 0,
+    "wrong_format_count": 0,
+    "wrong_range_count": 0,
+    "total_tokens_used": 36864,
+    "response_times": [
+      3.5271711349487305,
+      6.748638868331909,
+      2.2605268955230713,
+      1.4260146617889404,
+      1.4265589714050293,
+      1.9141502380371094,
+      4.2918901443481445,
+      1.1411302089691162,
+      1.2381260395050049
+    ],
+    "invalid_rate_percent": 0.0,
+    "avg_tokens_per_request": 4096.0,
+    "avg_response_time": 2.664
+  },
+  "history": [
+    {
+      "turn": 1,
+      "prompt": "In this game, the player have a deck of cards. The game is played in a number of turns.\nEvery turn, in this exact order:\n- Your mana is set to 3.\n- You draw a set of 5 cards from your <DRAW_PILE> into your <HAND>. If your <DRAW_PILE> doesn't have enough cards, you draw as much as you can, then you shuffle all the cards from your <DISCARD_PILE> into your <DRAW_PILE>. Then, you draw the remaing number of cards from your <DRAW_PILE> into your <HAND>.\n- You play as many cards as you want as long as you have enough <MANA> to play them. Then you end your turn.\n- When you end your turn, all the remainig cards in your <HAND> move to your <DISCARD_PILE>. You will draw new cards next turn.\n- When you end your turn, Your enemies one by one do their intended action (this is shown for each enemy as \"intention\"). Note that the intention of an enemy will be affected by its status effects. For example, if an enemy intends to attack for 3, but has 4 <STRENGTH>s, it will deal 7 damage.\nWhen any creature gets attacked, first it loses <BLOCK>. Whatever damage is left, it loses as <HP>. Any block lasts only for one turn.\nAny creature that reaches an <HP> of zero or less, is removed from the game.\nThe <STATUS_EFFECTS> in the game are defined as follows:\nEvery <STATUS_EFFECT> has a value x. The value of a <STATUS_EFFECT> can stack, meaning that if applied multiple times on the same target, their x values are added together.\n- <VULNERABLE>: Take 50% more damage from attacks for x turns.\n- <WEAK>: Deal 25% less attack damage for x turns.\n- <STRENGTH>: Deal x more attack damage. It affects multi-attacks multiple times.\n- <VIGOR>: Deal x more attack damage only on the next attack card you play (this turn or after). It affects multi-attacks multiple times.\n- <BOMB>: Deal 40 damage to all enemies after x turns.\n- <TOLERANCE>: Gain X block at the end of your turn. Increase X by 2.\nIf your character is removed from the game, you lose the game.\nIf all the enemies are removed from the game, you win the game.\nYour goal is to win the game with as much remaining health as possible.\nTo \"Exhaust\" a card means that the cards will move to your <EXHAUST_PILE> and will not be playable for the rest of the game.\nYou started with the following cards in your deck:\n5 of card <name: Strike, mana cost:1, type:CardType.ATTACK\ndescription: Deal 6 attack damage to your choice between enemies>\n4 of card <name: Defend, mana cost:1, type:CardType.SKILL\ndescription: Add 5 block to self>\n1 of card <name: Bash, mana cost:2, type:CardType.ATTACK\ndescription: Deal 8 attack damage and Apply 2 Vulnerable to your choice between enemies>\n\n=== TURN 1 ===\nMana: 3/3\nPlayer: HP 80/80, Block 0\nStatus: []\n\nEnemies:\n  0. JawWorm: HP 42/42, Block 0, Intent: Deal 11 attack damage to player\n=== DECK STATE ===\nTotal deck: 10 cards\nDraw pile: 5 cards\nDiscard: 0 cards\nHand: 5 cards\nExhausted: 0 cards\n\nRemaining cards in cycle:\n  Strike: 3x\n  Defend: 2x\n=== ENEMY ANALYSIS ===\n\nEnemy 0 (JawWorm):\n  Current intent: Deal 11 attack damage to player\n  Action pattern: PreventRepeats\n\n=== YOUR OPTIONS ===\n0. Strike (Cost: 1)\n   Effect: Deal 6 attack damage to your choice between enemies\n1. Defend (Cost: 1)\n   Effect: Add 5 block to self\n2. Bash (Cost: 2)\n   Effect: Deal 8 attack damage and Apply 2 Vulnerable to your choice between enemies\n3. Defend (Cost: 1)\n   Effect: Add 5 block to self\n4. Strike (Cost: 1)\n   Effect: Deal 6 attack damage to your choice between enemies\n5. End Turn\n\n=== DECISION REQUEST ===\nChoose the best option (0-5).\nRESPOND WITH THE NUMBER FIRST, THEN EXPLAIN YOUR REASONING.",
+      "response": "2\nUsing Bash will deal 8 damage and apply 2 Vulnerable to JawWorm, increasing the damage it takes by 50% for the next 2 turns. This sets up future turns for higher damage output, maximizing long-term offensive potential.",
+      "move_index": 2,
+      "response_id": "resp_0988d4ebb42fb2290068ffff4977748191956999d81be8c17a",
+      "tokens": 1177
+    },
+    {
+      "turn": 1,
+      "prompt": "In this game, the player have a deck of cards. The game is played in a number of turns.\nEvery turn, in this exact order:\n- Your mana is set to 3.\n- You draw a set of 5 cards from your <DRAW_PILE> into your <HAND>. If your <DRAW_PILE> doesn't have enough cards, you draw as much as you can, then you shuffle all the cards from your <DISCARD_PILE> into your <DRAW_PILE>. Then, you draw the remaing number of cards from your <DRAW_PILE> into your <HAND>.\n- You play as many cards as you want as long as you have enough <MANA> to play them. Then you end your turn.\n- When you end your turn, all the remainig cards in your <HAND> move to your <DISCARD_PILE>. You will draw new cards next turn.\n- When you end your turn, Your enemies one by one do their intended action (this is shown for each enemy as \"intention\"). Note that the intention of an enemy will be affected by its status effects. For example, if an enemy intends to attack for 3, but has 4 <STRENGTH>s, it will deal 7 damage.\nWhen any creature gets attacked, first it loses <BLOCK>. Whatever damage is left, it loses as <HP>. Any block lasts only for one turn.\nAny creature that reaches an <HP> of zero or less, is removed from the game.\nThe <STATUS_EFFECTS> in the game are defined as follows:\nEvery <STATUS_EFFECT> has a value x. The value of a <STATUS_EFFECT> can stack, meaning that if applied multiple times on the same target, their x values are added together.\n- <VULNERABLE>: Take 50% more damage from attacks for x turns.\n- <WEAK>: Deal 25% less attack damage for x turns.\n- <STRENGTH>: Deal x more attack damage. It affects multi-attacks multiple times.\n- <VIGOR>: Deal x more attack damage only on the next attack card you play (this turn or after). It affects multi-attacks multiple times.\n- <BOMB>: Deal 40 damage to all enemies after x turns.\n- <TOLERANCE>: Gain X block at the end of your turn. Increase X by 2.\nIf your character is removed from the game, you lose the game.\nIf all the enemies are removed from the game, you win the game.\nYour goal is to win the game with as much remaining health as possible.\nTo \"Exhaust\" a card means that the cards will move to your <EXHAUST_PILE> and will not be playable for the rest of the game.\nYou started with the following cards in your deck:\n1 of card <name: Bash, mana cost:2, type:CardType.ATTACK\ndescription: Deal 8 attack damage and Apply 2 Vulnerable to your choice between enemies>\n5 of card <name: Strike, mana cost:1, type:CardType.ATTACK\ndescription: Deal 6 attack damage to your choice between enemies>\n4 of card <name: Defend, mana cost:1, type:CardType.SKILL\ndescription: Add 5 block to self>\n\n=== TURN 1 ===\nMana: 1/3\nPlayer: HP 80/80, Block 0\nStatus: []\n\nEnemies:\n  0. JawWorm: HP 34/42, Block 0, Intent: Deal 11 attack damage to player\n=== DECK STATE ===\nTotal deck: 10 cards\nDraw pile: 5 cards\nDiscard: 1 cards\nHand: 4 cards\nExhausted: 0 cards\n\nRemaining cards in cycle:\n  Strike: 3x\n  Defend: 2x\n  Bash: 1x\n=== ENEMY ANALYSIS ===\n\nEnemy 0 (JawWorm):\n  Current intent: Deal 11 attack damage to player\n  Action pattern: PreventRepeats\n\n=== YOUR OPTIONS ===\n0. Strike (Cost: 1)\n   Effect: Deal 6 attack damage to your choice between enemies\n1. Defend (Cost: 1)\n   Effect: Add 5 block to self\n2. Defend (Cost: 1)\n   Effect: Add 5 block to self\n3. Strike (Cost: 1)\n   Effect: Deal 6 attack damage to your choice between enemies\n4. End Turn\n\n=== DECISION REQUEST ===\nChoose the best option (0-4).\nRESPOND WITH THE NUMBER FIRST, THEN EXPLAIN YOUR REASONING.",
+      "response": "1\nUsing Defend will add 5 block, reducing the incoming damage from 11 to 6, which is important for managing HP. It's more valuable to minimize damage now given that Vulnerable is applied, allowing for higher damage output in subsequent turns.",
+      "move_index": 1,
+      "response_id": "resp_0988d4ebb42fb2290068ffff4c7bc08191a0736dc814ae48a8",
+      "tokens": 2332
+    },
+    {
+      "turn": 1,
+      "prompt": "In this game, the player have a deck of cards. The game is played in a number of turns.\nEvery turn, in this exact order:\n- Your mana is set to 3.\n- You draw a set of 5 cards from your <DRAW_PILE> into your <HAND>. If your <DRAW_PILE> doesn't have enough cards, you draw as much as you can, then you shuffle all the cards from your <DISCARD_PILE> into your <DRAW_PILE>. Then, you draw the remaing number of cards from your <DRAW_PILE> into your <HAND>.\n- You play as many cards as you want as long as you have enough <MANA> to play them. Then you end your turn.\n- When you end your turn, all the remainig cards in your <HAND> move to your <DISCARD_PILE>. You will draw new cards next turn.\n- When you end your turn, Your enemies one by one do their intended action (this is shown for each enemy as \"intention\"). Note that the intention of an enemy will be affected by its status effects. For example, if an enemy intends to attack for 3, but has 4 <STRENGTH>s, it will deal 7 damage.\nWhen any creature gets attacked, first it loses <BLOCK>. Whatever damage is left, it loses as <HP>. Any block lasts only for one turn.\nAny creature that reaches an <HP> of zero or less, is removed from the game.\nThe <STATUS_EFFECTS> in the game are defined as follows:\nEvery <STATUS_EFFECT> has a value x. The value of a <STATUS_EFFECT> can stack, meaning that if applied multiple times on the same target, their x values are added together.\n- <VULNERABLE>: Take 50% more damage from attacks for x turns.\n- <WEAK>: Deal 25% less attack damage for x turns.\n- <STRENGTH>: Deal x more attack damage. It affects multi-attacks multiple times.\n- <VIGOR>: Deal x more attack damage only on the next attack card you play (this turn or after). It affects multi-attacks multiple times.\n- <BOMB>: Deal 40 damage to all enemies after x turns.\n- <TOLERANCE>: Gain X block at the end of your turn. Increase X by 2.\nIf your character is removed from the game, you lose the game.\nIf all the enemies are removed from the game, you win the game.\nYour goal is to win the game with as much remaining health as possible.\nTo \"Exhaust\" a card means that the cards will move to your <EXHAUST_PILE> and will not be playable for the rest of the game.\nYou started with the following cards in your deck:\n1 of card <name: Bash, mana cost:2, type:CardType.ATTACK\ndescription: Deal 8 attack damage and Apply 2 Vulnerable to your choice between enemies>\n4 of card <name: Defend, mana cost:1, type:CardType.SKILL\ndescription: Add 5 block to self>\n5 of card <name: Strike, mana cost:1, type:CardType.ATTACK\ndescription: Deal 6 attack damage to your choice between enemies>\n\n=== TURN 1 ===\nMana: 0/3\nPlayer: HP 80/80, Block 5\nStatus: []\n\nEnemies:\n  0. JawWorm: HP 34/42, Block 0, Intent: Deal 11 attack damage to player\n=== DECK STATE ===\nTotal deck: 10 cards\nDraw pile: 5 cards\nDiscard: 2 cards\nHand: 3 cards\nExhausted: 0 cards\n\nRemaining cards in cycle:\n  Strike: 3x\n  Defend: 3x\n  Bash: 1x\n=== ENEMY ANALYSIS ===\n\nEnemy 0 (JawWorm):\n  Current intent: Deal 11 attack damage to player\n  Action pattern: PreventRepeats\n\n=== YOUR OPTIONS ===\n0. End Turn\n\n=== DECISION REQUEST ===\nChoose the best option (0-0).\nRESPOND WITH THE NUMBER FIRST, THEN EXPLAIN YOUR REASONING.",
+      "response": "0\nEnding the turn is the only option as there is no mana left. The block will reduce incoming damage from 11 to 6, preserving HP for future turns.",
+      "move_index": 0,
+      "response_id": "resp_0988d4ebb42fb2290068ffff533bdc81918345d04b940e8841",
+      "tokens": 3384
+    },
+    {
+      "turn": 2,
+      "prompt": "=== TURN 2 ===\nMana: 3/3\nPlayer: HP 74/80, Block 0\nStatus: []\n\nEnemies:\n  0. JawWorm: HP 34/42, Block 0, Intent: Apply 3 Strength and Add 5 block to self\n=== DECK STATE ===\nTotal deck: 10 cards\nDraw pile: 0 cards\nDiscard: 5 cards\nHand: 5 cards\nExhausted: 0 cards\n\nRemaining cards in cycle:\n  Defend: 2x\n  Strike: 2x\n  Bash: 1x\n=== ENEMY ANALYSIS ===\n\nEnemy 0 (JawWorm):\n  Current intent: Apply 3 Strength and Add 5 block to self\n  Action pattern: PreventRepeats\n\n=== YOUR OPTIONS ===\n0. Defend (Cost: 1)\n   Effect: Add 5 block to self\n1. Strike (Cost: 1)\n   Effect: Deal 6 attack damage to your choice between enemies\n2. Defend (Cost: 1)\n   Effect: Add 5 block to self\n3. Strike (Cost: 1)\n   Effect: Deal 6 attack damage to your choice between enemies\n4. Strike (Cost: 1)\n   Effect: Deal 6 attack damage to your choice between enemies\n5. End Turn\n\n=== DECISION REQUEST ===\nChoose the best option (0-5).\nRESPOND WITH THE NUMBER FIRST, THEN EXPLAIN YOUR REASONING.",
+      "response": "1\nUsing Strike three times will deal 18 damage, reducing JawWorm's HP significantly. Since the enemy intends to buff itself and add block, maximizing damage now is optimal to counter its future increased strength.",
+      "move_index": 1,
+      "response_id": "resp_0988d4ebb42fb2290068ffff5582e48191befdf8989944bb21",
+      "tokens": 3877
+    },
+    {
+      "turn": 2,
+      "prompt": "=== TURN 2 ===\nMana: 2/3\nPlayer: HP 74/80, Block 0\nStatus: []\n\nEnemies:\n  0. JawWorm: HP 25/42, Block 0, Intent: Apply 3 Strength and Add 5 block to self\n=== DECK STATE ===\nTotal deck: 10 cards\nDraw pile: 0 cards\nDiscard: 6 cards\nHand: 4 cards\nExhausted: 0 cards\n\nRemaining cards in cycle:\n  Strike: 3x\n  Defend: 2x\n  Bash: 1x\n=== ENEMY ANALYSIS ===\n\nEnemy 0 (JawWorm):\n  Current intent: Apply 3 Strength and Add 5 block to self\n  Action pattern: PreventRepeats\n\n=== YOUR OPTIONS ===\n0. Defend (Cost: 1)\n   Effect: Add 5 block to self\n1. Defend (Cost: 1)\n   Effect: Add 5 block to self\n2. Strike (Cost: 1)\n   Effect: Deal 6 attack damage to your choice between enemies\n3. Strike (Cost: 1)\n   Effect: Deal 6 attack damage to your choice between enemies\n4. End Turn\n\n=== DECISION REQUEST ===\nChoose the best option (0-4).\nRESPOND WITH THE NUMBER FIRST, THEN EXPLAIN YOUR REASONING.",
+      "response": "2\nUse Strike twice to deal 12 damage total. This will further reduce JawWorm's HP before it gains block and strength, ensuring a quicker victory and minimizing future risk from its increased damage potential.",
+      "move_index": 2,
+      "response_id": "resp_0988d4ebb42fb2290068ffff56eb008191a7f6999cb8cb9c57",
+      "tokens": 4346
+    },
+    {
+      "turn": 2,
+      "prompt": "=== TURN 2 ===\nMana: 1/3\nPlayer: HP 74/80, Block 0\nStatus: []\n\nEnemies:\n  0. JawWorm: HP 16/42, Block 0, Intent: Apply 3 Strength and Add 5 block to self\n=== DECK STATE ===\nTotal deck: 10 cards\nDraw pile: 0 cards\nDiscard: 7 cards\nHand: 3 cards\nExhausted: 0 cards\n\nRemaining cards in cycle:\n  Strike: 4x\n  Defend: 2x\n  Bash: 1x\n=== ENEMY ANALYSIS ===\n\nEnemy 0 (JawWorm):\n  Current intent: Apply 3 Strength and Add 5 block to self\n  Action pattern: PreventRepeats\n\n=== YOUR OPTIONS ===\n0. Defend (Cost: 1)\n   Effect: Add 5 block to self\n1. Defend (Cost: 1)\n   Effect: Add 5 block to self\n2. Strike (Cost: 1)\n   Effect: Deal 6 attack damage to your choice between enemies\n3. End Turn\n\n=== DECISION REQUEST ===\nChoose the best option (0-3).\nRESPOND WITH THE NUMBER FIRST, THEN EXPLAIN YOUR REASONING.",
+      "response": "2\nUsing Strike will deal 6 damage, reducing JawWorm's HP to 10. This minimizes its HP before it gains block and strength, setting up for a potential kill next turn.",
+      "move_index": 2,
+      "response_id": "resp_0988d4ebb42fb2290068ffff5858808191994d21154137db0f",
+      "tokens": 4790
+    },
+    {
+      "turn": 2,
+      "prompt": "=== TURN 2 ===\nMana: 0/3\nPlayer: HP 74/80, Block 0\nStatus: []\n\nEnemies:\n  0. JawWorm: HP 7/42, Block 0, Intent: Apply 3 Strength and Add 5 block to self\n=== DECK STATE ===\nTotal deck: 10 cards\nDraw pile: 0 cards\nDiscard: 8 cards\nHand: 2 cards\nExhausted: 0 cards\n\nRemaining cards in cycle:\n  Strike: 5x\n  Defend: 2x\n  Bash: 1x\n=== ENEMY ANALYSIS ===\n\nEnemy 0 (JawWorm):\n  Current intent: Apply 3 Strength and Add 5 block to self\n  Action pattern: PreventRepeats\n\n=== YOUR OPTIONS ===\n0. End Turn\n\n=== DECISION REQUEST ===\nChoose the best option (0-0).\nRESPOND WITH THE NUMBER FIRST, THEN EXPLAIN YOUR REASONING.",
+      "response": "0\nEnding the turn is the only option as there is no mana left. JawWorm will gain block and strength, but it's at low HP, setting up for a potential finish next turn.",
+      "move_index": 0,
+      "response_id": "resp_0988d4ebb42fb2290068ffff5a431881919717e18ae72adfca",
+      "tokens": 5171
+    },
+    {
+      "turn": 3,
+      "prompt": "=== TURN 3 ===\nMana: 3/3\nPlayer: HP 74/80, Block 0\nStatus: []\n\nEnemies:\n  0. JawWorm: HP 7/42, Block 5, Intent: Deal 7 attack damage to player and Add 5 block to self\n=== DECK STATE ===\nTotal deck: 10 cards\nDraw pile: 5 cards\nDiscard: 0 cards\nHand: 5 cards\nExhausted: 0 cards\n\nRemaining cards in cycle:\n  Strike: 3x\n  Defend: 2x\n=== ENEMY ANALYSIS ===\n\nEnemy 0 (JawWorm):\n  Current intent: Deal 7 attack damage to player and Add 5 block to self\n  Action pattern: PreventRepeats\n\n=== YOUR OPTIONS ===\n0. Defend (Cost: 1)\n   Effect: Add 5 block to self\n1. Strike (Cost: 1)\n   Effect: Deal 6 attack damage to your choice between enemies\n2. Strike (Cost: 1)\n   Effect: Deal 6 attack damage to your choice between enemies\n3. Defend (Cost: 1)\n   Effect: Add 5 block to self\n4. Bash (Cost: 2)\n   Effect: Deal 8 attack damage and Apply 2 Vulnerable to your choice between enemies\n5. End Turn\n\n=== DECISION REQUEST ===\nChoose the best option (0-5).\nRESPOND WITH THE NUMBER FIRST, THEN EXPLAIN YOUR REASONING.",
+      "response": "4\nUsing Bash will deal 8 damage and apply 2 Vulnerable, breaking through the block and dealing enough damage to defeat JawWorm, ensuring a win this turn.",
+      "move_index": 4,
+      "response_id": "resp_0988d4ebb42fb2290068ffff5e92548191b9668d9561a1c3eb",
+      "tokens": 5662
+    },
+    {
+      "turn": 3,
+      "prompt": "=== TURN 3 ===\nMana: 1/3\nPlayer: HP 74/80, Block 0\nStatus: []\n\nEnemies:\n  0. JawWorm: HP 4/42, Block 0, Intent: Deal 7 attack damage to player and Add 5 block to self\n=== DECK STATE ===\nTotal deck: 10 cards\nDraw pile: 5 cards\nDiscard: 1 cards\nHand: 4 cards\nExhausted: 0 cards\n\nRemaining cards in cycle:\n  Strike: 3x\n  Defend: 2x\n  Bash: 1x\n=== ENEMY ANALYSIS ===\n\nEnemy 0 (JawWorm):\n  Current intent: Deal 7 attack damage to player and Add 5 block to self\n  Action pattern: PreventRepeats\n\n=== YOUR OPTIONS ===\n0. Defend (Cost: 1)\n   Effect: Add 5 block to self\n1. Strike (Cost: 1)\n   Effect: Deal 6 attack damage to your choice between enemies\n2. Strike (Cost: 1)\n   Effect: Deal 6 attack damage to your choice between enemies\n3. Defend (Cost: 1)\n   Effect: Add 5 block to self\n4. End Turn\n\n=== DECISION REQUEST ===\nChoose the best option (0-4).\nRESPOND WITH THE NUMBER FIRST, THEN EXPLAIN YOUR REASONING.",
+      "response": "1\nUsing Strike will deal 6 damage, which will defeat the JawWorm since it has 4 HP remaining, ensuring victory this turn.",
+      "move_index": 1,
+      "response_id": "resp_0988d4ebb42fb2290068ffff5fb5148191aaa666c83462077f",
+      "tokens": 6125
+    }
+  ]
+}

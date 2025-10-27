@@ -43,15 +43,23 @@ class PlayCard(Action):
     def __init__(self, card_index: int):
         super().__init__()
         self.card_index = card_index
-    
+
     def get_card_index(self):
         return self.card_index
 
     def play(self, by: Agent, game_state: GameState, battle_state: BattleState) -> None:
         battle_state.play_card(self.card_index)
-    
+
     def __repr__(self) -> str:
         return f"Play card {self.card_index} from your hand"
+
+    def __eq__(self, other):
+        if not isinstance(other, PlayCard):
+            return False
+        return self.card_index == other.card_index
+
+    def __hash__(self):
+        return hash(('PlayCard', self.card_index))
 
 class NoAction(Action):
     def play(self, by: Agent, game_state: GameState, battle_state: BattleState) -> None:
@@ -60,6 +68,12 @@ class NoAction(Action):
 class EndAgentTurn(Action):
     def play(self, by: Agent, game_state: GameState, battle_state: BattleState) -> None:
         battle_state.end_agent_turn()
-    
+
     def __repr__(self) -> str:
         return "End turn"
+
+    def __eq__(self, other):
+        return isinstance(other, EndAgentTurn)
+
+    def __hash__(self):
+        return hash('EndAgentTurn')
