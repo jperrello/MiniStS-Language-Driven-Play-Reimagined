@@ -11,19 +11,21 @@ if TYPE_CHECKING:
     from agent import Agent
     from card import Card
 
-
+# agent itself
 class MCTSAgent(GGPA):
-    def __init__(self, iterations: int = 100, parameter: float = 0.5):
+    def __init__(self, iterations: int = 100, exploration: float = 0.5):
         super().__init__("MCTSAgent")
         self.iterations = iterations
-        self.parameter = parameter
+        self.exploration = exploration
         self.root = None
 
+#MAIN DECISION RIGHT HERE !!!
     def choose_card(self, game_state: GameState, battle_state: BattleState) -> EndAgentTurn | PlayCard:
-        self.root = TreeNode(None, None, self.parameter)
+        self.root = TreeNode(None, None, self.exploration)
 
+        
         for _ in range(self.iterations):
-            state_copy = battle_state.copy_undeterministic()
+            state_copy = battle_state.copy_undeterministic() # mcts modifies game state on each iteration, we dont want that to be persistent 
             self.root.step(state_copy)
 
         return self.root.get_best(battle_state)
@@ -38,7 +40,7 @@ class MCTSAgent(GGPA):
         if self.root:
             self.root.print_tree()
 
-
+#everything to do with the nodes of the mcts tree 
 class TreeNode:
     def __init__(self, action, parent: TreeNode | None, c: float = 0.5):
         self.action = action
@@ -50,18 +52,18 @@ class TreeNode:
         self.unexplored_actions = []
 
     def step(self, state: BattleState) -> None:
-        # four-phase mcts iteration: selection, expansion, rollout, backpropagation
+        # four-phase mcts iteration: selection, expansion, simulation, backpropagation
         node = self.select(state)
 
         if not state.ended():
             node = node.expand(state)
 
-        score = node.rollout(state)
+        score = node.simulate(state)
 
         node.backpropagate(score)
 
     def select(self, state: BattleState) -> TreeNode:
-        # traverse tree using ucb-1 until reaching unexpanded or terminal node
+        # traverse tree using uct until reaching unexpanded or terminal node
         node = self
 
         while not state.ended():
@@ -85,6 +87,7 @@ class TreeNode:
         if not self.unexplored_actions:
             self.unexplored_actions = self._get_actions(state)
 
+        #cant expand if there are no unexplored actions
         if not self.unexplored_actions:
             return self
 
@@ -98,7 +101,7 @@ class TreeNode:
 
         return child
 
-    def rollout(self, state: BattleState) -> float:
+    def simulate(self, state: BattleState) -> float:
         while not state.ended():
             actions = self._get_actions(state)
             if not actions:
@@ -154,7 +157,7 @@ class TreeNode:
         return actions
 
     def _select_child_action(self):
-        # stochastic ucb-1: calculate ucb values then sample via softmax
+        # stochastic uct: calculate ucb values then sample via softmax
         ucb_values = {}
         for action_key, child in self.children.items():
             if child.visits == 0:

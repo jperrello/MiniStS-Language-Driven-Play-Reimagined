@@ -131,7 +131,7 @@ def main():
                        help='Number of MCTS iterations per turn (default: 50)')
     parser.add_argument('-s', '--scenario', type=str, default='starter',
                        help='Scenario to run: starter, basic, scaling, vigor, lowhp, bomb (default: starter)')
-    parser.add_argument('-p', '--parameter', type=float, default=0.5,
+    parser.add_argument('-p', '--exploration', type=float, default=0.5,
                        help='Exploration parameter for UCB-1 (default: 0.5)')
     parser.add_argument('-g', '--games', type=int, default=1,
                        help='Number of games to run (default: 1)')
@@ -144,7 +144,7 @@ def main():
     args = parser.parse_args()
 
     if args.bot == 'mcts':
-        bot = MCTSAgent(iterations=args.iterations, parameter=args.parameter)
+        bot = MCTSAgent(iterations=args.iterations, exploration=args.exploration)
     elif args.bot == 'random':
         bot = RandomBot()
     elif args.bot == 'human':
@@ -158,7 +158,7 @@ def main():
     print(f"  Bot: {args.bot}")
     if args.bot == 'mcts':
         print(f"  Iterations: {args.iterations}")
-        print(f"  Parameter (c): {args.parameter}")
+        print(f"  Exploration (c): {args.exploration}")
     print(f"  Games: {args.games}")
     print()
 

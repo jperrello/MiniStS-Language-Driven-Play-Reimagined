@@ -236,28 +236,28 @@ def get_all_agents() -> List[AgentConfig]:
 
         AgentConfig(
             name="MCTS-50",
-            agent_instance=MCTSAgent(iterations=50, parameter=0.5),
+            agent_instance=MCTSAgent(iterations=50, exploration=0.5),
             description="MCTS with 50 iterations, c=0.5"
         ),
         AgentConfig(
             name="MCTS-100",
-            agent_instance=MCTSAgent(iterations=100, parameter=0.5),
+            agent_instance=MCTSAgent(iterations=100, exploration=0.5),
             description="MCTS with 100 iterations, c=0.5"
         ),
         AgentConfig(
             name="MCTS-200",
-            agent_instance=MCTSAgent(iterations=200, parameter=0.5),
+            agent_instance=MCTSAgent(iterations=200, exploration=0.5),
             description="MCTS with 200 iterations, c=0.5"
         ),
 
         AgentConfig(
             name="MCTS-100-c1.0",
-            agent_instance=MCTSAgent(iterations=100, parameter=1.0),
+            agent_instance=MCTSAgent(iterations=100, exploration=1.0),
             description="MCTS with 100 iterations, c=1.0 (more exploration)"
         ),
         AgentConfig(
             name="MCTS-100-c0.2",
-            agent_instance=MCTSAgent(iterations=100, parameter=0.2),
+            agent_instance=MCTSAgent(iterations=100, exploration=0.2),
             description="MCTS with 100 iterations, c=0.2 (more exploitation)"
         ),
 
