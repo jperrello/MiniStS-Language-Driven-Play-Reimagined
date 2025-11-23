@@ -1,8 +1,19 @@
-"""
-Minimal SATURN server for agent testing.
+"""SATURN server for AI service discovery.
+
 Lightweight OpenRouter proxy with full model catalog support.
 Implements SATURN service discovery protocol using DNS-SD.
+
+Configuration:
+- OPENROUTER_API_KEY: Set in .env file
+- OPENROUTER_BASE_URL: https://openrouter.ai/api/v1/chat/completions (default)
+- Port: Auto-selected or specify with --port
+- Priority: Default 50, lower values = higher priority
+
+Usage:
+    python joey_setup/saturn_server.py
+    python joey_setup/saturn_server.py --port 8080 --priority 10
 """
+
 import argparse
 import socket
 import os
@@ -20,7 +31,6 @@ from dotenv import load_dotenv
 from datetime import datetime, timedelta
 from contextlib import asynccontextmanager
 
-# Load environment variables
 load_dotenv()
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 OPENROUTER_BASE_URL = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1/chat/completions")
@@ -66,20 +76,15 @@ def fetch_openrouter_models() -> List[Dict[str, Any]]:
     }
 
     try:
-        print("[Test Server] Fetching models from OpenRouter API...")
+        print("[Server] Fetching models from OpenRouter API...")
         response = requests.get(OPENROUTER_MODELS_URL, headers=headers, timeout=30)
         response.raise_for_status()
         data = response.json()
 
-        # Extract models from response
-        if "data" in data:
-            models = data["data"]
-        else:
-            models = data
+        models = data.get("data", data)
 
         formatted_models = []
 
-        # Add openrouter/auto as first model
         auto_model = {
             "id": "openrouter/auto",
             "object": "model",
@@ -91,7 +96,6 @@ def fetch_openrouter_models() -> List[Dict[str, Any]]:
         }
         formatted_models.append(auto_model)
 
-        # Add all available models from OpenRouter
         for model in models:
             if isinstance(model, dict) and "id" in model:
                 formatted_models.append({
@@ -103,61 +107,59 @@ def fetch_openrouter_models() -> List[Dict[str, Any]]:
                     "modality": model.get("modality", "text"),
                 })
 
-        print(f"[Test Server] Successfully fetched {len(formatted_models)} models from OpenRouter")
+        print(f"[Server] Successfully fetched {len(formatted_models)} models from OpenRouter")
         return formatted_models
     except requests.RequestException as e:
-        print(f"[Test Server] Failed to fetch OpenRouter models: {e}")
+        print(f"[Server] Failed to fetch OpenRouter models: {e}")
         return []
 
 
 async def refresh_models_if_needed():
     """Refresh model cache if it's stale."""
     if model_cache.needs_refresh():
-        print("[Test Server] Model cache is stale, refreshing...")
+        print("[Server] Model cache is stale, refreshing...")
         models = fetch_openrouter_models()
         if models:
             model_cache.update(models)
-            print(f"[Test Server] Successfully refreshed cache with {len(models)} models")
+            print(f"[Server] Successfully refreshed cache with {len(models)} models")
         else:
-            print("[Test Server] Failed to refresh models, keeping existing cache")
+            print("[Server] Failed to refresh models, keeping existing cache")
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Initialize and cleanup for the FastAPI app."""
     print("=" * 60)
-    print("[Test Server] Starting up...")
+    print("[Server] Starting up...")
     print("=" * 60)
 
-    # Fetch models on startup
     models = fetch_openrouter_models()
     if models:
         model_cache.update(models)
-        print(f"[Test Server] Cached {len(models)} models from OpenRouter")
+        print(f"[Server] Cached {len(models)} models from OpenRouter")
     else:
-        print("[Test Server] WARNING: Failed to fetch models at startup. The /v1/models endpoint will be empty.")
+        print("[Server] WARNING: Failed to fetch models at startup. The /v1/models endpoint will be empty.")
 
     yield
 
-    print("[Test Server] Shutting down...")
+    print("[Server] Shutting down...")
 
 
-# FastAPI app with lifespan
 app = FastAPI(
-    title="Saturn Test Server",
-    description="SATURN server for agent testing with full OpenRouter model catalog",
+    title="Saturn Server",
+    description="SATURN server with full OpenRouter model catalog",
     version="2.0",
     lifespan=lifespan
 )
 
-# Request model
+
 class UserAIRequest(BaseModel):
     model: str
     messages: List[Dict[str, Any]]
     max_tokens: Optional[int] = None
     stream: bool = False
 
-# Health endpoint
+
 @app.get("/v1/health")
 async def health() -> dict:
     """Return server health status."""
@@ -168,14 +170,12 @@ async def health() -> dict:
         "features": ["full-catalog", "auto-routing", "streaming"]
     }
 
-# Models endpoint - returns full OpenRouter catalog
+
 @app.get("/v1/models")
 async def get_models() -> dict:
     """Return list of available models from OpenRouter API."""
-    # Refresh cache if needed
     await refresh_models_if_needed()
 
-    # Get cached models
     cached_models = model_cache.get()
 
     if not cached_models:
@@ -186,14 +186,13 @@ async def get_models() -> dict:
 
     return {"models": cached_models}
 
-# Chat completions endpoint - proxy to OpenRouter
+
 @app.post("/v1/chat/completions")
 async def chat_completions(request: UserAIRequest):
     """Handle chat completion requests by proxying to OpenRouter."""
     print(f"Received request for model: {request.model}")
     print(f"Messages count: {len(request.messages)}, stream: {request.stream}")
 
-    # Build OpenRouter request
     openrouter_request = {
         "model": request.model,
         "messages": request.messages
@@ -211,7 +210,6 @@ async def chat_completions(request: UserAIRequest):
     }
 
     try:
-        # Forward request to OpenRouter
         response = requests.post(
             OPENROUTER_BASE_URL,
             headers=headers,
@@ -229,7 +227,6 @@ async def chat_completions(request: UserAIRequest):
                 detail=f"OpenRouter API error: {response.text}"
             )
 
-        # Handle streaming response
         if request.stream:
             print("Returning streaming response")
 
@@ -263,7 +260,6 @@ async def chat_completions(request: UserAIRequest):
                 }
             )
         else:
-            # Handle non-streaming response
             try:
                 result = response.json()
                 print("OpenRouter response parsed successfully")
@@ -282,13 +278,11 @@ async def chat_completions(request: UserAIRequest):
         raise HTTPException(status_code=502, detail=f"OpenRouter connection error: {str(e)}")
 
 
-# SATURN priority collision avoidance using DNS-SD
 def find_available_priority(desired_priority: int, service_type: str) -> int:
     """Scan for existing services and avoid priority collisions using DNS-SD."""
     priorities = set()
 
     try:
-        # DNS-SD service browsing to check existing priorities
         browse_proc = subprocess.Popen(
             ['dns-sd', '-B', '_saturn._tcp', 'local'],
             stdout=subprocess.PIPE,
@@ -325,7 +319,6 @@ def find_available_priority(desired_priority: int, service_type: str) -> int:
         print("dns-sd not available or timed out, using desired priority without checking")
         return desired_priority
 
-    # Find available priority
     current_priority = desired_priority
     while current_priority in priorities:
         print(f"Priority {current_priority} is already in use, trying {current_priority + 1}...")
@@ -342,9 +335,8 @@ def register_saturn(port: int, priority: int, service_type: str) -> subprocess.P
     actual_priority = find_available_priority(priority, service_type)
 
     host = socket.gethostname()
-    service_name = f"TestServer"
+    service_name = f"SaturnServer"
 
-    # DNS-SD service registration using subprocess
     txt_records = f"version=2.0 api=OpenRouter features=full-catalog,auto-routing,streaming priority={actual_priority}"
 
     try:
@@ -381,18 +373,17 @@ def find_port_number(host: str, start_port=8080, max_attempts=20) -> int:
 
 
 def main():
-    """Main entry point for the test server."""
-    parser = argparse.ArgumentParser(description="Saturn Test Server - Minimal OpenRouter Proxy")
+    """Main entry point for the server."""
+    parser = argparse.ArgumentParser(description="Saturn Server - OpenRouter Proxy")
     parser.add_argument("--host", type=str, default="0.0.0.0", help="Host to bind to")
     parser.add_argument("--port", type=int, default=None, help="Port to bind to (auto-select if not specified)")
     parser.add_argument("--priority", type=int, default=50, help="SATURN service priority")
     args = parser.parse_args()
 
-    # Find or use specified port
     port = args.port if args.port else find_port_number(args.host)
 
     print("=" * 60)
-    print("SATURN Test Server - OpenRouter Proxy with Full Model Catalog")
+    print("SATURN Server - OpenRouter Proxy with Full Model Catalog")
     print("=" * 60)
     print(f"Starting on {args.host}:{port} with desired priority {args.priority}")
     print(f"Models: Full OpenRouter catalog (343+ models including openrouter/auto)")
