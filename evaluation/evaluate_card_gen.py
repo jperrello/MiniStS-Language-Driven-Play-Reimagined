@@ -20,8 +20,56 @@ from ggpa.random_bot import RandomBot
 from ggpa.backtrack import BacktrackBot
 from ggpa.chatgpt_bot import ChatGPTBot
 from ggpa.prompt2 import PromptOption
+from ggpa.none_agent import NoneAgent
+from ggpa.basic_agent import BasicAgent
+from g3_files.agents.llm_bot import SimpleLLMBot
+from g3_files.agents.mcts_bot import MCTSAgent
+from g3_files.agents.rcot_agent import RCotAgent, RCotConfig
 
 def name_to_bot(name: str, limit_share: float) -> GGPA:
+    # Baseline agents: NoneAgent and BasicAgent
+    if name == 'none':
+        return NoneAgent()
+    if name == 'basic':
+        return BasicAgent()
+
+    # G3 MCTS agents with configurable iterations
+    if name == 'g3-mcts':
+        return MCTSAgent(iterations=100)
+    if name.startswith('g3-mcts-'):
+        iterations = int(name.split('-')[-1])
+        return MCTSAgent(iterations=iterations)
+
+    # G3 RCoT agents (Reflective Chain-of-Thought)
+    if name == 'g3-rcot-cot':
+        return RCotAgent(RCotConfig(prompt_option="cot"))
+    if name == 'g3-rcot-none':
+        return RCotAgent(RCotConfig(prompt_option="none"))
+    if name == 'g3-rcot-rcot':
+        return RCotAgent(RCotConfig(prompt_option="rcot"))
+
+    # G3 SimpleLLMBot agents with direct OpenRouter API calls
+    if name == 'g3-llm-openrouter-auto':
+        return SimpleLLMBot(SimpleLLMBot.ModelName.OPENROUTER_AUTO, PromptOption.CoT, 0, False)
+    if name == 'g3-llm-gpt4o':
+        return SimpleLLMBot(SimpleLLMBot.ModelName.GPT_4o, PromptOption.CoT, 0, False)
+    if name == 'g3-llm-claude':
+        return SimpleLLMBot(SimpleLLMBot.ModelName.CLAUDE_35_SONNET, PromptOption.CoT, 0, False)
+    if name == 'g3-llm-gemini':
+        return SimpleLLMBot(SimpleLLMBot.ModelName.GEMINI_PRO_15, PromptOption.CoT, 0, False)
+
+    # Free models
+    if name == 'g3-llm-grok-free':
+        return SimpleLLMBot(SimpleLLMBot.ModelName.GROK_41_FAST_FREE, PromptOption.CoT, 0, False)
+    if name == 'g3-llm-gemma-free':
+        return SimpleLLMBot(SimpleLLMBot.ModelName.GEMMA_3N_FREE, PromptOption.CoT, 0, False)
+    if name == 'g3-llm-nemotron-free':
+        return SimpleLLMBot(SimpleLLMBot.ModelName.NEMOTRON_NANO_FREE, PromptOption.CoT, 0, False)
+    if name == 'g3-llm-gpt-oss-free':
+        return SimpleLLMBot(SimpleLLMBot.ModelName.GPT_OSS_20B_FREE, PromptOption.CoT, 0, False)
+    if name == 'g3-llm-deepseek-free':
+        return SimpleLLMBot(SimpleLLMBot.ModelName.DEEPSEEK_R1T2_FREE, PromptOption.CoT, 0, False)
+
     if name == 'r':
         return RandomBot()
     if len(name) > 3 and name[0:3] == 'bts':
@@ -64,14 +112,16 @@ def get_enemies(enemies: str, game_state: GameState) -> list[Enemy]:
 def simulate_one(index: int, bot: GGPA, new_cards: list[Card]|None, deck: list[Card], enemies: str, path: str, verbose: Verbose):
     game_state = GameState(Character.IRON_CLAD, bot, 0)
     game_state.set_deck(*deck)
+    card_name = "control"
     if new_cards is not None:
         game_state.add_to_deck(*new_cards)
+        card_name = "-".join([card.name for card in new_cards])
     battle_state = BattleState(game_state, *get_enemies(enemies, game_state),
-                               verbose=verbose, log_filename=os.path.join(path, f'{index}_{"control" if new_cards is None else "-".join([card.name for card in new_cards])}'))
+                               verbose=verbose, log_filename=os.path.join(path, f'{index}_{card_name}'))
     battle_state.run()
     if isinstance(bot, ChatGPTBot):
         bot.dump_history(os.path.join(path, f'{index}_{bot.name}_history'))
-    return [bot.name, game_state.player.health, game_state.get_end_results() != -1]
+    return [bot.name, card_name, game_state.player.health, game_state.get_end_results() != -1]
 
 def main():
     parser = argparse.ArgumentParser()
@@ -83,6 +133,7 @@ def main():
     parser.add_argument('--name', type=str, default="")
     parser.add_argument('--dir', type=str, default="")
     parser.add_argument('--log', action=argparse.BooleanOptionalAction)
+    parser.add_argument('--gigl-dir', type=str, default="", help="Directory containing GIGL JSON card files")
     args = parser.parse_args()
 
     test_count = args.test_count
@@ -94,9 +145,21 @@ def main():
     verbose = Verbose.LOG if args.log else Verbose.NO_LOG
     bot: GGPA = name_to_bot(args.bot, 1/thread_count)
     bot_name = bot.name
-    cards: list[Callable[[], Card]|None] = [CardRepo.get_random() for _ in range(gen_count)]
-    cards.append(None)
-    dir_name = f'{int(time.time())}_card_gen_{custom_name}_enemies_{enemies}_{test_count}_{bot_name}'
+
+    # Load GIGL cards from JSON if directory is provided
+    if args.gigl_dir:
+        import os
+        import glob as glob_lib
+        json_files = glob_lib.glob(os.path.join(args.gigl_dir, "*.json"))
+        if gen_count > 0:
+            json_files = json_files[:gen_count]
+        cards: list[Callable[[], Card]|None] = [lambda path=f: CardRepo.load_card_from_json(path) for f in json_files]
+        cards.append(None)  # Add control case
+    else:
+        # Use random card generation as before
+        cards: list[Callable[[], Card]|None] = [CardRepo.get_random() for _ in range(gen_count)]
+        cards.append(None)
+    dir_name = f'card_gen_{custom_name}_enemies_{enemies}_{test_count}_{bot_name}'
     if custom_dir != "":
         dir_name = os.path.join(custom_dir, dir_name)
     path = os.path.join('evaluation_results', dir_name)
@@ -110,7 +173,7 @@ def main():
     assert isinstance(results_dataset, list), "Parallel jobs have not resulted in an output of type list"
     df = pd.DataFrame(
         results_dataset,
-        columns=["BotName", "PlayerHealth", "Win"]
+        columns=["BotName", "CardName", "PlayerHealth", "Win"]
     )
     df.to_csv(os.path.join(path, f"results.csv"), index=False)
 

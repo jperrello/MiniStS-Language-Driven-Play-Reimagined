@@ -3,19 +3,9 @@ from ggpa.chatgpt_bot import ChatGPTBot
 from ggpa.prompt2 import PromptOption
 
 class BasicAgent(ChatGPTBot):
-    """
-    A Basic LLM Agent that uses Direct Prompting (No Chain-of-Thought).
-    It utilizes the existing ChatGPTBot infrastructure but enforces specific 
-    configuration parameters to achieve the 'Basic' agent behavior defined in the project.
-    """
-    def __init__(self, model_name: ChatGPTBot.ModelName = ChatGPTBot.ModelName.GPT_Turbo_35):
-        """
-        Initialize the BasicAgent.
 
-        Args:
-            model_name (ChatGPTBot.ModelName): The OpenAI model to use. 
-                                               Defaults to GPT-3.5 Turbo.
-        """
+    def __init__(self, model_name: ChatGPTBot.ModelName = ChatGPTBot.ModelName.GPT_Turbo_35):
+
         # Call the superclass constructor with the specific configuration for a Basic Agent:
         # - prompt_option=PromptOption.NONE: Asks for a direct answer (no CoT).
         # - few_shot=0: Zero-shot learning (no examples provided).

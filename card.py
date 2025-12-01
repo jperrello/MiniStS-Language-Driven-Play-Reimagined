@@ -9,6 +9,7 @@ from status_effecs import StatusEffectRepo, StatusEffectDefinition
 from value import Value, ConstValue, UpgradableOnce, LinearUpgradable
 from utility import RandomStr
 from typing import TYPE_CHECKING, Callable
+import json
 if TYPE_CHECKING:
     from game import GameState
     from battle import BattleState
@@ -77,6 +78,63 @@ class CardGen:
     Suffer = lambda: Card("Suffer", CardType.ATTACK, ConstValue(1), Character.IRON_CLAD, Rarity.STARTER, DealAttackDamage(UpgradableOnce(15, 30)).To(ChooseAgentTarget(AgentSet.ENEMY)))
 
 class CardRepo:
+    @staticmethod
+    def load_card_from_json(json_path: str) -> Card:
+        """Load a card definition from JSON file in GIGL format"""
+        with open(json_path, 'r') as f:
+            data = json.load(f)
+
+        name = data['name']
+        # Map JSON type to CardType enum
+        type_map = {
+            'Attack': CardType.ATTACK,
+            'Skill': CardType.SKILL,
+            'Power': CardType.POWER
+        }
+        card_type = type_map.get(data['type'], CardType.ATTACK)
+
+        cost = ConstValue(data['cost'])
+
+        # Map JSON rarity to Rarity enum
+        rarity_map = {
+            'Common': Rarity.COMMON,
+            'Uncommon': Rarity.UNCOMMON,
+            'Rare': Rarity.RARE,
+            'Starter': Rarity.STARTER
+        }
+        rarity = rarity_map.get(data['rarity'], Rarity.COMMON)
+
+        # Parse effects into actions
+        actions: list[Action] = []
+        for effect in data['effects']:
+            action_type = effect['action'].lower()
+            value = ConstValue(effect['value'])
+            target_str = effect['target'].lower()
+
+            # Map target string to target object
+            if target_str == 'self':
+                target = SelfAgentTarget()
+            elif target_str == 'enemy':
+                target = ChooseAgentTarget(AgentSet.ENEMY)
+            elif target_str == 'allenemies':
+                target = AllAgentsTarget(AgentSet.ENEMY)
+            else:
+                target = ChooseAgentTarget(AgentSet.ENEMY)
+
+            # Create action based on type
+            if action_type == 'dealattackdamage':
+                actions.append(DealAttackDamage(value).To(target))
+            elif action_type == 'gainblock':
+                actions.append(AddBlock(value).To(target))
+            elif action_type == 'applyvulnerable':
+                actions.append(ApplyStatus(value, StatusEffectRepo.VULNERABLE).To(target))
+            elif action_type == 'applyweak':
+                actions.append(ApplyStatus(value, StatusEffectRepo.WEAK).To(target))
+            elif action_type == 'applystrength':
+                actions.append(ApplyStatus(value, StatusEffectRepo.STRENGTH).To(target))
+
+        return Card(name, card_type, cost, Character.IRON_CLAD, rarity, *actions)
+
     @staticmethod
     def get_random() -> Callable[[], Card]:
         import random, string

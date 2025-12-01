@@ -1,25 +1,14 @@
-"""Reflective Chain-of-Thought (RCoT) agent for Slay the Spire.
-
-Implements the RCoT approach from "Language-Driven Play: Large Language Models
-as Game-Playing Agents in Slay the Spire" by Bateni & Whitehead (FDG 2024).
-
-Key features:
-- Three prompt options: none (baseline), cot (chain-of-thought), rcot (reverse cot)
-- Card name anonymization for generalization
-- SATURN service discovery for zero-config AI access
-- Designed for general game playing without specialized training
-"""
-
 from __future__ import annotations
 import time
 import random
 from typing import TYPE_CHECKING, Optional
 from dataclasses import dataclass, field
 
+from openai import OpenAI
 from ggpa.ggpa import GGPA
 from ggpa.prompt2 import get_agent_target_prompt, get_card_target_prompt
 from action.action import EndAgentTurn, PlayCard
-from joey_files.joey_setup.saturn_service_manager import SaturnServiceManager
+from auth import OPENROUTER_API_KEY
 
 if TYPE_CHECKING:
     from game import GameState
@@ -55,29 +44,21 @@ class RCotStatistics:
 
 
 class RCotAgent(GGPA):
-    """Reflective Chain-of-Thought agent using LLMs for strategic game-playing.
 
-    Uses SATURN service discovery to connect to AI services without API key management.
-    Implements the prompt structure from Bateni & Whitehead (2024).
-    """
-
-    def __init__(self, config: Optional[RCotConfig] = None,
-                 saturn_manager: Optional[SaturnServiceManager] = None):
+    def __init__(self, config: Optional[RCotConfig] = None):
         self.config = config or RCotConfig()
         super().__init__(f"RCoT-{self.config.prompt_option}")
 
-        if saturn_manager is None:
-            self.saturn_manager = SaturnServiceManager(discovery_timeout=3.0)
-            self._owns_saturn = True
-        else:
-            self.saturn_manager = saturn_manager
-            self._owns_saturn = False
+        print(f"[RCoT] Initializing OpenRouter API client...")
+        self.client = OpenAI(
+            base_url="https://openrouter.ai/api/v1",
+            api_key=OPENROUTER_API_KEY,
+        )
 
         self.stats = RCotStatistics()
         self.card_anonymization_map = {}
 
     def _anonymize_card_name(self, card_name: str) -> str:
-        """Anonymize card names with random 6-character strings."""
         if not self.config.anonymize_cards:
             return card_name
 
@@ -88,7 +69,6 @@ class RCotAgent(GGPA):
         return self.card_anonymization_map[card_name]
 
     def _build_game_context(self, game_state: GameState, battle_state: BattleState) -> str:
-        """Build game context component of prompt with global rules and card descriptions."""
         lines = ["=== GAME RULES ==="]
         lines.append("in this game, the player has a deck of cards.")
         lines.append("at the start of every turn, you draw cards from your draw pile.")
@@ -120,7 +100,6 @@ class RCotAgent(GGPA):
 
     def _build_game_state(self, game_state: GameState, battle_state: BattleState,
                          options: list[PlayCard | EndAgentTurn]) -> str:
-        """Build current game state with player, enemies, and available options."""
         player = battle_state.player
         lines = [f"\n=== TURN {battle_state.turn} STATE ==="]
         lines.append(f"mana: {battle_state.mana}/{game_state.max_mana}")
@@ -149,13 +128,6 @@ class RCotAgent(GGPA):
         return "\n".join(lines)
 
     def _build_request(self, num_options: int) -> str:
-        """Build request prompt with strategy from paper.
-
-        Options:
-        - none: just ask for index
-        - cot: ask for explanation first, then index
-        - rcot: ask for index first, then explanation
-        """
         lines = ["\n=== DECISION ==="]
 
         if self.config.prompt_option == "none":
@@ -172,7 +144,6 @@ class RCotAgent(GGPA):
         return "\n".join(lines)
 
     def _parse_response(self, content: str, max_index: int) -> Optional[int]:
-        """Parse LLM response to extract move.."""
         paragraphs = [p.strip() for p in content.split('\n\n') if p.strip()]
         if not paragraphs:
             paragraphs = [content.strip()]
@@ -196,22 +167,24 @@ class RCotAgent(GGPA):
 
             messages = [{"role": "user", "content": prompt}]
 
-            response = self.saturn_manager.chat_completion(
-                messages=messages,
+            # Make API call using OpenAI client
+            response = self.client.chat.completions.create(
                 model=self.config.model,
+                messages=messages,
                 max_tokens=self.config.max_tokens,
                 temperature=self.config.temperature,
-                timeout=30
             )
 
             elapsed = time.time() - start
             self.stats.total_requests += 1
             self.stats.response_times.append(elapsed)
 
-            if response and 'usage' in response:
-                self.stats.total_tokens += response['usage'].get('total_tokens', 0)
+            response_dict = response.model_dump()
 
-            return response
+            if response.usage:
+                self.stats.total_tokens += response.usage.total_tokens
+
+            return response_dict
 
         except Exception as e:
             print(f"[rcot] api call failed: {e}")
@@ -223,6 +196,7 @@ class RCotAgent(GGPA):
 
         prompt_parts = []
 
+        # Include full game context every 5 turns for context refresh
         if battle_state.turn == 1 or battle_state.turn % 5 == 1:
             prompt_parts.append(self._build_game_context(game_state, battle_state))
 
@@ -251,14 +225,12 @@ class RCotAgent(GGPA):
 
     def choose_agent_target(self, battle_state: BattleState, list_name: str,
                           agent_list: list[Agent]) -> Agent:
-        """Choose which agent to target (uses simple heuristic)."""
         if len(agent_list) == 1:
             return agent_list[0]
         return min(agent_list, key=lambda a: a.health)
 
     def choose_card_target(self, battle_state: BattleState, list_name: str,
                           card_list: list[Card]) -> Card:
-        """uses simple heuristic to choose card target."""
         if len(card_list) == 1:
             return card_list[0]
         return card_list[0]
@@ -271,13 +243,3 @@ class RCotAgent(GGPA):
             'total_tokens': self.stats.total_tokens,
             'avg_response_time': self.stats.avg_response_time
         }
-
-    def cleanup(self):
-        if self._owns_saturn:
-            self.saturn_manager.close()
-
-    def __del__(self):
-        try:
-            self.cleanup()
-        except:
-            pass

@@ -1,12 +1,3 @@
-"""Monte Carlo Tree Search agent for Slay the Spire.
-
-Simulates future game states using random rollouts to evaluate moves.
-Uses UCB1 (Upper Confidence Bound) for exploration-exploitation balance.
-
-From Language-Driven Play paper: MCTS outperforms backtrack search on
-complex scenarios by exploring broader state spaces through simulation.
-"""
-
 from __future__ import annotations
 import random
 import math
@@ -22,7 +13,6 @@ if TYPE_CHECKING:
 
 
 class MCTSAgent(GGPA):
-    """Monte Carlo Tree Search agent using UCB1 exploration."""
 
     def __init__(
         self,
@@ -47,7 +37,6 @@ class MCTSAgent(GGPA):
         self.root = None
 
     def choose_card(self, game_state: GameState, battle_state: BattleState) -> EndAgentTurn | PlayCard:
-        """Run MCTS iterations and return best action."""
         self.root = TreeNode(
             None,
             None,
@@ -78,7 +67,6 @@ class MCTSAgent(GGPA):
 
 
 class TreeNode:
-    """Node in MCTS search tree."""
 
     def __init__(
         self,
@@ -107,7 +95,6 @@ class TreeNode:
         self.unexplored_actions = []
 
     def step(self, state: BattleState) -> None:
-        """Execute one MCTS iteration: select, expand, simulate, backpropagate."""
         node = self.select(state)
 
         if not state.ended():
@@ -117,7 +104,6 @@ class TreeNode:
         node.backpropagate(score)
 
     def select(self, state: BattleState) -> TreeNode:
-        """Traverse tree using UCT until reaching unexpanded or terminal node."""
         node = self
 
         while not state.ended():
@@ -138,7 +124,6 @@ class TreeNode:
         return node
 
     def expand(self, state: BattleState) -> TreeNode:
-        """Add a new child node for an unexplored action."""
         if not self.unexplored_actions:
             self.unexplored_actions = self._get_actions(state)
 
@@ -166,7 +151,6 @@ class TreeNode:
         return child
 
     def simulate(self, state: BattleState) -> float:
-        """Random rollout until terminal state, return evaluation score."""
         while not state.ended():
             actions = self._get_actions(state)
             if not actions:
@@ -177,7 +161,6 @@ class TreeNode:
         return self._evaluate_state(state)
 
     def backpropagate(self, score: float) -> None:
-        """Update visit counts and scores up to root."""
         node = self
         while node is not None:
             node.visits += 1
@@ -185,7 +168,6 @@ class TreeNode:
             node = node.parent
 
     def get_best(self, state: BattleState) -> EndAgentTurn | PlayCard:
-        """Return most-visited child (robust child selection)."""
         if not self.children:
             actions = self._get_actions(state)
             return random.choice(actions) if actions else EndAgentTurn()
@@ -213,7 +195,6 @@ class TreeNode:
             child.print_tree(indent + 2)
 
     def _get_actions(self, state: BattleState) -> list:
-        """Get all valid actions from current state."""
         actions = []
         for i in range(len(state.hand)):
             if state.hand[i].is_playable(state.game_state, state):
@@ -224,7 +205,6 @@ class TreeNode:
         return actions
 
     def _select_child_action(self):
-        """Stochastic UCT: calculate UCB values then sample via softmax."""
         ucb_values = {}
         for action_key, child in self.children.items():
             if child.visits == 0:
@@ -239,6 +219,7 @@ class TreeNode:
             unvisited = [k for k, v in ucb_values.items() if v == float('inf')]
             selected_key = random.choice(unvisited)
         else:
+            # Softmax sampling from UCB values for stochastic exploration
             exp_values = {k: math.exp((v - max_ucb) / self.temperature) for k, v in ucb_values.items()}
             total_exp = sum(exp_values.values())
             probabilities = {k: v / total_exp for k, v in exp_values.items()}
@@ -250,7 +231,6 @@ class TreeNode:
         return self.children[selected_key].action
 
     def _evaluate_state(self, state: BattleState) -> float:
-        """Heuristic evaluation: win bonus + health, loss gives partial credit for damage."""
         if state.ended():
             result = state.get_end_result()
             if result == 1:

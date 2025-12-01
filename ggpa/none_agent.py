@@ -12,10 +12,7 @@ if TYPE_CHECKING:
     from card import Card
 
 class NoneAgent(GGPA):
-    """
-    A hard-coded agent that follows a simple, heuristic-based policy.
-    It does not use an LLM.
-    """
+
     def __init__(self):
         super().__init__("NoneAgent")
 
