@@ -9,18 +9,18 @@ pip install pandas tqdm seaborn matplotlib joblib openai dotenv
 
 **Test Generated Cards (GIGL):**
 ```bash
-python evaluation/evaluate_card_gen.py 10 4 20 s llm-claude --gigl-dir GIGL/generated_cards --name gigl_test 
+python evaluation/evaluate_card_gen.py 10 4 20 h llm-claude --gigl-dir GIGL/generated_cards --name gigl_test 
 ```
 Note: this uses money to pay for claude.
 It runs 10 sims for each 20 cards with 4 threads
 If you want to test for free:
 ```bash
-python evaluation/evaluate_card_gen.py 10 4 20 s bt5 --gigl-dir GIGL/generated_cards --name gigl_test 
+python evaluation/evaluate_card_gen.py 10 4 20 h bt5 --gigl-dir GIGL/generated_cards --name gigl_test 
 ```
 
 **Default Agent Comparison Test:**
 ```bash
-python evaluation/evaluate_bot.py 50 4 0 s r bt3 rcot-cot rcot-none rcot-rcot --name agent_comparison --time 
+python evaluation/evaluate_bot.py 50 4 0 h r bt3 cot rcot-none rcot-rcot --name agent_comparison --time 
 ```
 
 **Plot Results:**
@@ -41,7 +41,7 @@ python evaluation/plot_evaluation.py evaluation_results/<your_test_directory>/re
 
 ### Available Enemies (Global)
 Enemy configuration string (e.g., `gsl` for Goblin, SimpleEnemy, Leech):
-- `s` = SimpleEnemy (from paper: 22 damage attack, 10 damage + 10 block, probably what you want to run)
+- `h` = HobGoblin (from paper: 22 damage attack, 10 damage + 10 block, probably what you want to run)
 - `g` = Goblin
 - `l` = Leech
 - `j` = JawWorm

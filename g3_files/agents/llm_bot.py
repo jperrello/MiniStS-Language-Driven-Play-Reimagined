@@ -26,8 +26,8 @@ class SimpleLLMBot(GGPA):
         GPT_4o = "openai/gpt-4o"
         CLAUDE_35_SONNET = "anthropic/claude-3.5-sonnet"
         GEMINI_PRO_15 = "google/gemini-2.5-pro"
-        GROK_41_FAST_FREE = "x-ai/grok-4.1-fast:free"
-        GEMMA_3N_FREE = "google/gemma-3n-e2b-it:free"
+        LLAMA_33_70B_FREE = "meta-llama/llama-3.3-70b-instruct:free"
+        QWEN3_235B_FREE = "qwen/qwen3-4b:free"
         NEMOTRON_NANO_FREE = "nvidia/nemotron-nano-9b-v2:free"
         GPT_OSS_20B_FREE = "openai/gpt-oss-20b:free"
         DEEPSEEK_R1T2_FREE = "tngtech/deepseek-r1t2-chimera:free"
@@ -44,8 +44,8 @@ class SimpleLLMBot(GGPA):
             SimpleLLMBot.ModelName.GPT_4o: '4o',
             SimpleLLMBot.ModelName.CLAUDE_35_SONNET: 'claude',
             SimpleLLMBot.ModelName.GEMINI_PRO_15: 'gemini',
-            SimpleLLMBot.ModelName.GROK_41_FAST_FREE: 'grok-free',
-            SimpleLLMBot.ModelName.GEMMA_3N_FREE: 'gemma-free',
+            SimpleLLMBot.ModelName.LLAMA_33_70B_FREE: 'grok-free',
+            SimpleLLMBot.ModelName.QWEN3_235B_FREE: 'gemma-free',
             SimpleLLMBot.ModelName.NEMOTRON_NANO_FREE: 'nemotron-free',
             SimpleLLMBot.ModelName.GPT_OSS_20B_FREE: 'gpt-oss-free',
             SimpleLLMBot.ModelName.DEEPSEEK_R1T2_FREE: 'deepseek-free',

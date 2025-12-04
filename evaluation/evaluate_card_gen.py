@@ -65,9 +65,9 @@ def name_to_bot(name: str, limit_share: float) -> GGPA:
 
     # LLM agents (Free models)
     if name == 'llm-grok-free':
-        return SimpleLLMBot(SimpleLLMBot.ModelName.GROK_41_FAST_FREE, PromptOption.CoT, 0, False)
+        return SimpleLLMBot(SimpleLLMBot.ModelName.LLAMA_33_70B_FREE, PromptOption.CoT, 0, False)
     if name == 'llm-gemma-free':
-        return SimpleLLMBot(SimpleLLMBot.ModelName.GEMMA_3N_FREE, PromptOption.CoT, 0, False)
+        return SimpleLLMBot(SimpleLLMBot.ModelName.QWEN3_235B_FREE, PromptOption.CoT, 0, False)
     if name == 'llm-nemotron-free':
         return SimpleLLMBot(SimpleLLMBot.ModelName.NEMOTRON_NANO_FREE, PromptOption.CoT, 0, False)
     if name == 'llm-gpt-oss-free':

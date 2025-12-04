@@ -26,6 +26,11 @@ def main():
     plt.figure(figsize=(8, 6))
     # SNS histplot raises error since it expects bins to be str, but based on the documentation, it can be a number
     sns.histplot(data=df, x=target_col, hue=by_col, bins=15, element="step", common_norm=False, kde=True) # type: ignore
+    palette = sns.color_palette()
+    unique_values = df[by_col].unique()
+    means = df.groupby(by_col)[target_col].mean()
+    for i, val in enumerate(unique_values):
+        plt.axvline(x=means[val], color=palette[i], linestyle='--', linewidth=1.5)
     if maxx is not None:
         plt.xlim(0, maxx)
     plt.title(f"Distribution of {target_col} by {by_col} - {test_count} Samples")
