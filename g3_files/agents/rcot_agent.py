@@ -20,11 +20,11 @@ if TYPE_CHECKING:
 
 @dataclass
 class RCotConfig:
-    model: str = "openrouter/auto"
-    temperature: float = 0.7
+    model: str
+    temperature: float = 0.2 #limited exploration
     max_tokens: int = 500
     anonymize_cards: bool = True
-    retry_limit: int = 3
+    retry_limit: int = 1
     prompt_option: str = "rcot"
 
 
@@ -49,7 +49,7 @@ class RCotAgent(GGPA):
     def __init__(self, config: Optional[RCotConfig] = None):
         self.config = config or RCotConfig()
 
-        # Determine short name for agent identification
+        # Determine short name for testing, ssame as all other agents
         model_short_names = {
             "openai/gpt-4.1": "gpt41",
             "openrouter/auto": "or-auto",
@@ -65,7 +65,7 @@ class RCotAgent(GGPA):
 
         super().__init__(f"RCoT-{short_name}")
 
-        # All models use OpenRouter API - lazy initialization for pickling
+        # all models use OpenRouter API 
         self._client = None
 
         self.stats = RCotStatistics()
@@ -93,7 +93,7 @@ class RCotAgent(GGPA):
             self.card_anonymization_map[card_name] = ''.join(random.choice(chars) for _ in range(6))
 
         return self.card_anonymization_map[card_name]
-
+    #from the old agents used in the paper 
     def _build_game_context(self, game_state: GameState, battle_state: BattleState) -> str:
         lines = ["=== GAME RULES ==="]
         lines.append("in this game, the player has a deck of cards.")
@@ -111,7 +111,7 @@ class RCotAgent(GGPA):
         all_cards = battle_state.draw_pile + battle_state.discard_pile + battle_state.hand + battle_state.exhaust_pile
         card_counts = {}
         for card in all_cards:
-            name = self._anonymize_card_name(card.name)
+            name = self._anonymize_card_name(card.name) # we still decided to do this after the presentation in class 
             if name not in card_counts:
                 card_counts[name] = {'count': 0, 'card': card}
             card_counts[name]['count'] += 1
@@ -156,12 +156,11 @@ class RCotAgent(GGPA):
     def _build_request(self, num_options: int) -> str:
         lines = ["\n=== DECISION ==="]
 
-        # RCotAgent only supports "rcot" prompt option (reverse CoT)
         if self.config.prompt_option != "rcot":
             raise ValueError(f"RCotAgent only supports prompt_option='rcot', got '{self.config.prompt_option}'")
-
+#rcot prompt
         lines.append(f"in the first paragraph, write only the index (0-{num_options-1}) of the best option.")
-        lines.append("in the second paragraph, explain why you think this move is best.")
+        lines.append("in the second paragraph, explain why you chose this move in this particular context.")
 
         return "\n".join(lines)
 
@@ -190,7 +189,7 @@ class RCotAgent(GGPA):
 
             messages = [{"role": "user", "content": prompt}]
 
-            # Make API call using OpenAI client
+            # Make API call 
             response = self.client.chat.completions.create(
                 model=self.config.model,
                 messages=messages,
@@ -219,9 +218,9 @@ class RCotAgent(GGPA):
 
         prompt_parts = []
 
-        # Include full game context every 5 turns for context refresh
-        if battle_state.turn == 1 or battle_state.turn % 5 == 1:
-            prompt_parts.append(self._build_game_context(game_state, battle_state))
+        # Include full game context every 5 turns for context refresh, got rid of this because paper used no history
+        # if battle_state.turn == 1 or battle_state.turn % 5 == 1:
+            # prompt_parts.append(self._build_game_context(game_state, battle_state))
 
         prompt_parts.append(self._build_game_state(game_state, battle_state, options))
         prompt_parts.append(self._build_request(len(options)))
