@@ -80,12 +80,10 @@ class CardGen:
 class CardRepo:
     @staticmethod
     def load_card_from_json(json_path: str) -> Card:
-        """Load a card definition from JSON file in GIGL format"""
         with open(json_path, 'r') as f:
             data = json.load(f)
 
         name = data['name']
-        # Map JSON type to CardType enum
         type_map = {
             'Attack': CardType.ATTACK,
             'Skill': CardType.SKILL,
@@ -95,7 +93,7 @@ class CardRepo:
 
         cost = ConstValue(data['cost'])
 
-        # Map JSON rarity to Rarity enum
+       
         rarity_map = {
             'Common': Rarity.COMMON,
             'Uncommon': Rarity.UNCOMMON,
@@ -104,7 +102,6 @@ class CardRepo:
         }
         rarity = rarity_map.get(data['rarity'], Rarity.COMMON)
 
-        # Parse effects into actions
         actions: list[Action] = []
         for effect in data['effects']:
             action_type = effect['action'].lower()

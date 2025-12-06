@@ -190,14 +190,29 @@ def simulate_one(index: int, bot: GGPA, deck: list[Card], enemies: str, path: st
         if isinstance(bot, ChatGPTBot):
             bot.dump_history(os.path.join(path, f'{index}_{bot.name}_history'))
             bot.dump_metadata(os.path.join(path, f'{bot.name}_metadata'))
-        return [bot.name, game_state.player.health, game_state.get_end_results() != -1]
+
+        # Get agent statistics if available
+        stats = {}
+        if hasattr(bot, 'get_statistics'):
+            stats = bot.get_statistics()
+
+        return [
+            bot.name,
+            game_state.player.health,
+            game_state.get_end_results() != -1,
+            stats.get('total_requests', 0),
+            stats.get('invalid_responses', 0),
+            stats.get('total_tokens', 0),
+            stats.get('avg_response_time', 0.0),
+            stats.get('invalid_rate', 0.0)
+        ]
     except Exception as e:
         # Convert exceptions to picklable format for joblib
         # API errors from OpenAI, Anthropic, etc. can't be pickled properly
         error_msg = f"{type(e).__name__}: {str(e)}"
         print(f"Error in simulation {index} for {bot.name}: {error_msg}")
         # Return a loss result with 0 health when an error occurs
-        return [bot.name, 0, False]
+        return [bot.name, 0, False, 0, 0, 0, 0.0, 0.0]
 
 def main():
     parser = argparse.ArgumentParser()
@@ -249,7 +264,7 @@ def main():
     assert isinstance(results_dataset, list), "Parallel jobs have not resulted in an output of type list"
     df = pd.DataFrame(
         results_dataset,
-        columns=["BotName", "PlayerHealth", "Win"]
+        columns=["BotName", "PlayerHealth", "Win", "TotalRequests", "InvalidResponses", "TotalTokens", "AvgResponseTime", "InvalidRate"]
     )
     df.to_csv(os.path.join(path, f"results.csv"), index=False)
     if time_execution:

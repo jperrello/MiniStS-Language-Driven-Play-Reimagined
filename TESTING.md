@@ -23,6 +23,16 @@ python evaluation/evaluate_card_gen.py 10 4 20 h bt5 --gigl-dir GIGL/generated_c
 python evaluation/evaluate_bot.py 50 4 0 h r bt3 none cot rcot --name agent_comparison --time
 ```
 
+**Paid Agent Test (this is $$$, but also the most important command):**
+```bash
+python evaluation/evaluate_bot.py 25 4 0 h rcot-gpt41 rcot-openrouter-auto rcot-claude rcot-gemini mcts rndm --name premium --time
+```
+
+**Generate Statistics Table:**
+```bash
+python evaluation/generate_table.py evaluation_results/<your_test_directory>/results.csv evaluation_results/<your_test_directory>/execution_times.json
+```
+
 **Plot Results:**
 ```bash
 # For bot evaluation results (group by BotName):
