@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 @dataclass
 class CotConfig:
     model: str
-    temperature: float = 0.2 #limited exploration
+    temperature: float = 0.2
     max_tokens: int = 500
     anonymize_cards: bool = True
     retry_limit: int = 1
@@ -54,15 +54,9 @@ class CotAgent(GGPA):
 
         self.system_prompt = (
             "You are an expert card game strategist.\n"
-            "Analyze the game state and enemy intent.\n"
-            "You must choose ONLY ONE card from the list.\n"
-            "You can only play the card if you have ENOUGH mana to play it.\n"
-            "Your goal is to WIN the game and have as much health as you can remaining.\n"
-            "Your response MUST end with a single line formatted EXACTLY as:\n"
-            "CARD: <index>\n\n"
-            "Ex:\n"
-            "The enemy is attacking. I play Defend to block.\n"
-            "CARD: 2"
+            "Analyze the game state, your hand, and enemy intent.\n"
+            "You must choose ONLY ONE card from the list options.\n"
+            "Your goal is to WIN the game effectively.\n"
         )
 
         # Determine short name for testing
@@ -170,34 +164,36 @@ class CotAgent(GGPA):
         return "\n".join(lines)
 
     def _build_request(self, num_options: int) -> str:
-        lines = ["\n=== DECISION ==="]
-
         if self.config.prompt_option != "Cot":
             raise ValueError(f"CotAgent only supports prompt_option='Cot', got '{self.config.prompt_option}'")
 #Cot prompt
-        lines.append(
-        f"Reason about the best card to pick in under 100 words. Make sure to choose ONLY ONE CARD from the list at the end.\n"
-        f"Your response MUST end with a single line formatted EXACTLY as:\n"
-        f"CARD: <index (0-{num_options-1})>\n"
-        f"Ex:\n"
-        f"CARD: 3"
-        )
+        lines = ["\n=== DECISION ==="]
+        lines.append("In the first paragraph, give the explanation of which option you think is best.")
+        lines.append(f"After that, starting at the second paragraph, write only the index of the option you want to take.")
+        lines.append(f"It should be one of the provided options (0-{num_options-1}).")
+        lines.append("Only print this number in a single line for the second paragraph, and nothing else.")
 
         return "\n".join(lines)
 
     def _parse_response(self, content: str, max_index: int) -> Optional[int]:
-        match = re.search(r"CARD:\s*(\d+)", content)
+        paragraphs = [p.strip() for p in content.split('\n\n') if p.strip()]
+        if len(paragraphs) < 2:
+            lines = [l.strip() for l in content.split('\n') if l.strip()]
+            if len(lines) >= 2:
+                card_index = lines[-1]
+            else:
+                card_index = content.strip().split()[-1] 
+        else:
+            card_index = paragraphs[1]
 
+        match = re.search(r"(\d+)", card_index)
         if match:
             try:
                 action_index = int(match.group(1))
                 if 0 <= action_index < max_index:
                     return action_index
-                else:
-                    print(f"Index {action_index} out of range.")
-                    return None
             except ValueError:
-                return None
+                pass
         return None
     
     def _make_api_call(self, prompt: str) -> Optional[dict]:
@@ -208,7 +204,6 @@ class CotAgent(GGPA):
                 {"role": "system", "content": self.system_prompt},
                 {"role": "user", "content": prompt}]
 
-            # Make API call 
             response = self.client.chat.completions.create(
                 model=self.config.model,
                 messages=messages,
@@ -228,7 +223,7 @@ class CotAgent(GGPA):
             return response_dict
 
         except Exception as e:
-            print(f"[Cot] api call failed: {e}")
+            print(f"Api call failed: {e}")
             self.stats.invalid_responses += 1
             return None
 
@@ -236,13 +231,15 @@ class CotAgent(GGPA):
         options = self.get_choose_card_options(game_state, battle_state)
 
         prompt_parts = []
+        
+        prompt_parts.append(self._build_request(len(options)))
 
         prompt_parts.append(self._build_game_state(game_state, battle_state, options))
-        prompt_parts.append(self._build_request(len(options)))
+        prompt_parts.append(self._build_game_context(game_state, battle_state))
 
         prompt = "\n".join(prompt_parts)
 
-        for attempt in range(self.config.retry_limit):
+        for _ in range(self.config.retry_limit):
             response = self._make_api_call(prompt)
 
             if response is None:
