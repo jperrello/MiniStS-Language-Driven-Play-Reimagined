@@ -27,13 +27,13 @@ from g3_files.agents.cot_agent import CotAgent
 from g3_files.agents.none_agent import NoneAgent, NoneConfig
 
 def name_to_bot(name: str, limit_share: float) -> GGPA:
-    # Baseline agents: RandomBot and BasicAgent
+    # Baseline agents
     if name == 'rndm':
         return RandomBot()
     if name == 'basic':
         return BasicAgent()
 
-    # None agents (Minimal prompting with PromptOption.NONE)
+    # None agents
     if name == 'none':
         return NoneAgent(NoneConfig())  # Default: openai/gpt-4.1
     if name == 'none-gpt41':
@@ -57,14 +57,14 @@ def name_to_bot(name: str, limit_share: float) -> GGPA:
     if name == 'none-deepseek-free':
         return NoneAgent(NoneConfig(model="tngtech/deepseek-r1t2-chimera:free"))
 
-    # MCTS agents with configurable iterations
+    # MCTS 
     if name == 'mcts':
         return MCTSAgent(iterations=100)
     if name.startswith('mcts-'):
         iterations = int(name.split('-')[-1])
         return MCTSAgent(iterations=iterations)
 
-    # RCoT agents (Reverse Chain-of-Thought with various LLM models)
+    # RCoT agents (Reverse Chain-of-Thought)
     if name == 'rcot':
         return RCotAgent(RCotConfig(prompt_option="rcot"))  # Default: openrouter/auto
     if name == 'rcot-gpt41':
@@ -76,7 +76,7 @@ def name_to_bot(name: str, limit_share: float) -> GGPA:
     if name == 'rcot-gemini':
         return RCotAgent(RCotConfig(model="google/gemini-3-pro-preview", prompt_option="rcot"))
 
-    # RCoT agents (Free models)
+    # RCoT agents (Free)
     if name == 'rcot-llama-free':
         return RCotAgent(RCotConfig(model="meta-llama/llama-3.3-70b-instruct:free", prompt_option="rcot"))
     if name == 'rcot-qwen-free':
@@ -88,7 +88,7 @@ def name_to_bot(name: str, limit_share: float) -> GGPA:
     if name == 'rcot-deepseek-free':
         return RCotAgent(RCotConfig(model="tngtech/deepseek-r1t2-chimera:free", prompt_option="rcot"))
 
-    # CoT agents (Chain-of-Thought via OpenRouter with various LLM models)
+    # CoT agents (Chain-of-Thought via OpenRouter)
     if name == 'cot':
         return CotAgent()  # Default: openai/gpt-4.1
     if name == 'cot-gpt41':
@@ -100,7 +100,7 @@ def name_to_bot(name: str, limit_share: float) -> GGPA:
     if name == 'cot-gemini':
         return CotAgent(model_name="google/gemini-3-pro-preview")
 
-    # CoT agents (Free models)
+    # CoT agents (Free )
     if name == 'cot-llama-free':
         return CotAgent(model_name="meta-llama/llama-3.3-70b-instruct:free")
     if name == 'cot-qwen-free':
@@ -193,7 +193,7 @@ def simulate_one(index: int, bot: GGPA, deck: list[Card], enemies: str, path: st
             bot.dump_history(os.path.join(path, f'{index}_{bot.name}_history'))
             bot.dump_metadata(os.path.join(path, f'{bot.name}_metadata'))
 
-        # Get agent statistics if available
+        # Get agent stats
         stats = {}
         if hasattr(bot, 'get_statistics'):
             stats = bot.get_statistics()
@@ -213,7 +213,7 @@ def simulate_one(index: int, bot: GGPA, deck: list[Card], enemies: str, path: st
         # API errors from OpenAI, Anthropic, etc. can't be pickled properly
         error_msg = f"{type(e).__name__}: {str(e)}"
         print(f"Error in simulation {index} for {bot.name}: {error_msg}")
-        # Return a loss result with 0 health when an error occurs
+        # Return a loss result with 0 health when an error occurs, this prrevents subsequent test failing
         return [bot.name, 0, False, 0, 0, 0, 0.0, 0.0]
 
 def main():

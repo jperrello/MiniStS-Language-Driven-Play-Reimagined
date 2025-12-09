@@ -26,20 +26,20 @@ from g3_files.agents.rcot_agent import RCotAgent, RCotConfig
 from g3_files.agents.cot_agent import CotAgent
 
 def name_to_bot(name: str, limit_share: float) -> GGPA:
-    # Baseline agents: RandomBot and BasicAgent
+    # Baseline agents
     if name == 'rndm':
         return RandomBot()
     if name == 'basic':
         return BasicAgent()
 
-    # MCTS agents with configurable iterations
+    # MCTS 
     if name == 'mcts':
         return MCTSAgent(iterations=100)
     if name.startswith('mcts-'):
         iterations = int(name.split('-')[-1])
         return MCTSAgent(iterations=iterations)
 
-    # RCoT agents (Reverse Chain-of-Thought with various LLM models)
+    # RCoT agents (Reverse Chain-of-Thought )
     if name == 'rcot':
         return RCotAgent(RCotConfig(prompt_option="rcot"))  # Default: openrouter/auto
     if name == 'rcot-gpt41':
@@ -63,7 +63,7 @@ def name_to_bot(name: str, limit_share: float) -> GGPA:
     if name == 'rcot-deepseek-free':
         return RCotAgent(RCotConfig(model="tngtech/deepseek-r1t2-chimera:free", prompt_option="rcot"))
 
-    # CoT agents (Chain-of-Thought via OpenRouter with various LLM models)
+    # CoT agents (Chain-of-Thought via OpenRouter)
     if name == 'cot':
         return CotAgent()  # Default: openai/gpt-4.1
     if name == 'cot-gpt41':
@@ -181,7 +181,7 @@ def main():
     bot: GGPA = name_to_bot(args.bot, 1/thread_count)
     bot_name = bot.name
 
-    # Load GIGL cards from JSON if directory is provided
+    # Load GIGL cards from JSON 
     if args.gigl_dir:
         import os
         import glob as glob_lib
